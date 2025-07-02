@@ -76,6 +76,42 @@ function showBrowserNotification(count) {
   }
 }
 
+function incrementAnalytics() {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.sync.get(['analyticsEnabled', 'analyticsDaily', 'analyticsWeekly', 'analyticsMonthly', 'analyticsLastDate'], function(result) {
+      if (result.analyticsEnabled === false) return;
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+      const week = now.getFullYear() + '-W' + getWeekNumber(now);
+      const month = now.getFullYear() + '-' + (now.getMonth() + 1);
+      let lastDate = result.analyticsLastDate || today;
+      let daily = result.analyticsDaily || 0;
+      let weekly = result.analyticsWeekly || 0;
+      let monthly = result.analyticsMonthly || 0;
+      // Reset if new day/week/month
+      if (lastDate !== today) daily = 0;
+      if (result.analyticsLastWeek !== week) weekly = 0;
+      if (result.analyticsLastMonth !== month) monthly = 0;
+      chrome.storage.sync.set({
+        analyticsDaily: daily + 1,
+        analyticsWeekly: weekly + 1,
+        analyticsMonthly: monthly + 1,
+        analyticsLastDate: today,
+        analyticsLastWeek: week,
+        analyticsLastMonth: month
+      });
+    });
+  }
+}
+
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  return weekNo;
+}
+
 function showDoubleSpaceModal(count) {
   if (document.getElementById('double-space-modal')) return;
 
@@ -144,4 +180,6 @@ function showDoubleSpaceModal(count) {
   setTimeout(() => {
     window.location.href = customRedirectUrl;
   }, 3000); // 3 second delay to let user see the popup
+
+  incrementAnalytics();
 } 
