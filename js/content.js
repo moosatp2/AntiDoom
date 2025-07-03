@@ -5,10 +5,14 @@ let timerStarted = false;
 let customRedirectUrl = 'https://www.google.com/'; // Default, can be changed by user
 let triggerThreshold = 2; // Default, can be changed by user
 let popupDelay = 10; // Default in seconds, can be changed by user
+let siteYoutube = true;
+let siteFacebook = true;
+let siteInstagram = true;
+let customSites = [];
 
 // Listen for custom redirect site, threshold, and delay from storage
 if (typeof chrome !== 'undefined' && chrome.storage) {
-  chrome.storage.sync.get(['customRedirectUrl', 'triggerThreshold', 'popupDelay'], function(result) {
+  chrome.storage.sync.get(['customRedirectUrl', 'triggerThreshold', 'popupDelay', 'siteYoutube', 'siteFacebook', 'siteInstagram', 'customSites'], function(result) {
     if (result.customRedirectUrl) {
       customRedirectUrl = result.customRedirectUrl;
     }
@@ -18,10 +22,42 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
     if (result.popupDelay) {
       popupDelay = result.popupDelay;
     }
+    if (typeof result.siteYoutube !== 'undefined') {
+      siteYoutube = result.siteYoutube;
+    }
+    if (typeof result.siteFacebook !== 'undefined') {
+      siteFacebook = result.siteFacebook;
+    }
+    if (typeof result.siteInstagram !== 'undefined') {
+      siteInstagram = result.siteInstagram;
+    }
+    if (Array.isArray(result.customSites)) {
+      customSites = result.customSites;
+    }
   });
 }
 
+function isAlertingEnabledForSite() {
+  const url = window.location.href;
+  if (url.startsWith('https://www.youtube.com/shorts/')) return siteYoutube;
+  if (url.startsWith('https://www.facebook.com/')) return siteFacebook;
+  if (url.startsWith('https://www.instagram.com/')) return siteInstagram;
+  for (const site of customSites) {
+    if (site.enabled && matchPattern(url, site.url)) return true;
+  }
+  return false;
+}
+
+function matchPattern(url, pattern) {
+  // Simple wildcard match: pattern can end with *
+  if (pattern.endsWith('*')) {
+    return url.startsWith(pattern.slice(0, -1));
+  }
+  return url === pattern;
+}
+
 function handleTrigger() {
+  if (!isAlertingEnabledForSite()) return;
   triggerCount++;
   if (triggerCount === triggerThreshold && !timerStarted) {
     timerStarted = true;
@@ -142,8 +178,8 @@ function showDoubleSpaceModal(count) {
 
   const content = document.createElement('div');
   content.style.background = '#fff0f0';
-  content.style.width = '500px';
-  content.style.height = '500px';
+  content.style.width = '1000px';
+  content.style.height = '1000px';
   content.style.display = 'flex';
   content.style.flexDirection = 'column';
   content.style.justifyContent = 'center';
@@ -155,9 +191,9 @@ function showDoubleSpaceModal(count) {
   content.style.border = '3px solid #ff2222';
 
   content.innerHTML = `
-    <h1 style=\"color:#ff2222; font-size:2em; margin:0 0 16px 0; font-weight:bold;\">Alas! Alas! Alas!</h1>
-    <p style=\"color:#b30000; font-size:1.2em; margin:0; font-weight:bold;\">You are killing your time</p>
-    <div style=\"margin-top:16px; color:#ff2222; font-size:1.1em;\">You have scrolled ${count} times</div>
+    <h1 style=\"color:#6B80C8; font-size:48px; margin:0 0 16px 0; font-weight:bold;\">Alas! Alas! Alas!</h1>
+    <p style=\"color:#3B4F8A; font-size:2em; margin:0; font-weight:bold;\">You are killing your time</p>
+    <div style=\"margin-top:16px; color:#6B80C8; font-size:4.4em;\">You have scrolled ${count} times</div>
   `;
 
   // Close modal on click or Escape
