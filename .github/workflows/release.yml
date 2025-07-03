@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Package extension
+      run: |
+        echo "Packaging extension for release..."
+        
+        # Create dist directory
+        mkdir -p dist
+        
+        # Copy files to dist
+        cp manifest.json background.js popup.html options.html dist/
+        cp -r js css assets dist/
+        
+        # Create zip file
+        cd dist
+        zip -r ../AntiDoom-Extension.zip . -x "*.DS_Store" "*.git*"
+        cd ..
+        
+        echo "✅ Extension packaged for release"
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./AntiDoom-Extension.zip
+        asset_name: AntiDoom-Extension-${{ github.ref_name }}.zip
+        asset_content_type: application/zip
+        
+    - name: Upload Source Code
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/
+        asset_name: AntiDoom-Source-${{ github.ref_name }}.zip
+        asset_content_type: application/zip
+        
+    - name: Generate Release Notes
+      run: |
+        echo "Generating release notes..."
+        
+        # Get version from tag
+        VERSION=${GITHUB_REF#refs/tags/}
+        
+        # Create release notes
+        cat > RELEASE_NOTES.md << EOF
+        # AntiDoom v$VERSION
+        
+        ## 🎉 What's New
+        
+        - [List new features here]
+        
+        ## 🐛 Bug Fixes
+        
+        - [List bug fixes here]
+        
+        ## 🔧 Improvements
+        
+        - [List improvements here]
+        
+        ## 📦 Installation
+        
+        1. Download \`AntiDoom-Extension-$VERSION.zip\`
+        2. Extract the ZIP file
+        3. Open Chrome and go to \`chrome://extensions/\`
+        4. Enable Developer mode
+        5. Click "Load unpacked" and select the extracted folder
+        
+        ## 📋 Changelog
+        
+        See the [full changelog](https://github.com/${{ github.repository }}/compare/v${{ steps.previous_version.outputs.version }}...v$VERSION) for detailed changes.
+        
+        ## 🙏 Thanks
+        
+        Thank you to all contributors and users!
+        EOF
+        
+    - name: Update Release Notes
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./RELEASE_NOTES.md
+        asset_name: RELEASE_NOTES.md
+        asset_content_type: text/markdown 

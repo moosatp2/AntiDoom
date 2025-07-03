@@ -1,0 +1,212 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Validate manifest.json
+      run: |
+        echo "Validating manifest.json..."
+        if [ ! -f "manifest.json" ]; then
+          echo "❌ manifest.json not found"
+          exit 1
+        fi
+        
+        # Check if manifest.json is valid JSON
+        if ! python3 -m json.tool manifest.json > /dev/null 2>&1; then
+          echo "❌ manifest.json is not valid JSON"
+          exit 1
+        fi
+        
+        echo "✅ manifest.json is valid"
+        
+    - name: Check file structure
+      run: |
+        echo "Checking required files..."
+        
+        required_files=(
+          "manifest.json"
+          "background.js"
+          "popup.html"
+          "options.html"
+          "js/content.js"
+          "js/popup.js"
+          "js/options.js"
+          "css/popup.css"
+          "assets/icon16.png"
+          "assets/icon48.png"
+          "assets/icon128.png"
+        )
+        
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Required file missing: $file"
+            exit 1
+          fi
+        done
+        
+        echo "✅ All required files present"
+        
+    - name: Validate HTML files
+      run: |
+        echo "Validating HTML files..."
+        
+        # Check if HTML files are well-formed
+        for html_file in popup.html options.html; do
+          if ! python3 -c "import xml.etree.ElementTree as ET; ET.parse('$html_file')" 2>/dev/null; then
+            echo "❌ $html_file is not well-formed HTML"
+            exit 1
+          fi
+        done
+        
+        echo "✅ HTML files are well-formed"
+        
+    - name: Check JavaScript syntax
+      run: |
+        echo "Checking JavaScript syntax..."
+        
+        # Install Node.js packages for linting if needed
+        npm install -g eslint || true
+        
+        # Basic syntax check for JS files
+        for js_file in js/*.js background.js; do
+          if [ -f "$js_file" ]; then
+            if ! node -c "$js_file" 2>/dev/null; then
+              echo "❌ Syntax error in $js_file"
+              exit 1
+            fi
+          fi
+        done
+        
+        echo "✅ JavaScript syntax is valid"
+        
+    - name: Package extension
+      run: |
+        echo "Packaging extension..."
+        
+        # Create dist directory
+        mkdir -p dist
+        
+        # Copy files to dist
+        cp manifest.json background.js popup.html options.html dist/
+        cp -r js css assets dist/
+        
+        # Create zip file
+        cd dist
+        zip -r ../AntiDoom-Extension.zip . -x "*.DS_Store" "*.git*"
+        cd ..
+        
+        echo "✅ Extension packaged successfully"
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-package
+        path: |
+          dist/
+          AntiDoom-Extension.zip
+        retention-days: 30
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run security scan
+      run: |
+        echo "Running security checks..."
+        
+        # Check for common security issues
+        if grep -r "eval(" js/ background.js 2>/dev/null; then
+          echo "⚠️  Warning: eval() found in JavaScript files"
+        fi
+        
+        if grep -r "innerHTML" js/ background.js 2>/dev/null; then
+          echo "⚠️  Warning: innerHTML usage found"
+        fi
+        
+        echo "✅ Security scan completed"
+        
+    - name: Check permissions
+      run: |
+        echo "Checking extension permissions..."
+        
+        # Extract permissions from manifest
+        permissions=$(python3 -c "
+import json
+with open('manifest.json') as f:
+    data = json.load(f)
+    perms = data.get('permissions', [])
+    print('Permissions:', perms)
+")
+        
+        echo "$permissions"
+        
+        # Check for potentially dangerous permissions
+        dangerous_perms=("tabs" "bookmarks" "history" "downloads" "cookies" "webNavigation")
+        for perm in $permissions; do
+          for dangerous in "${dangerous_perms[@]}"; do
+            if [[ "$perm" == *"$dangerous"* ]]; then
+              echo "⚠️  Warning: Potentially dangerous permission: $perm"
+            fi
+          done
+        done
+        
+        echo "✅ Permission check completed"
+
+  documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check documentation
+      run: |
+        echo "Checking documentation..."
+        
+        required_docs=(
+          "README.md"
+          "LICENSE"
+          "CONTRIBUTING.md"
+          "CODE_OF_CONDUCT.md"
+          "SECURITY.md"
+          "INSTALLATION.md"
+          "TESTING.md"
+        )
+        
+        for doc in "${required_docs[@]}"; do
+          if [ ! -f "$doc" ]; then
+            echo "❌ Required documentation missing: $doc"
+            exit 1
+          fi
+        done
+        
+        echo "✅ All required documentation present"
+        
+    - name: Validate README links
+      run: |
+        echo "Validating README links..."
+        
+        # Check if referenced files exist
+        for file in INSTALLATION.md TESTING.md CONTRIBUTING.md LICENSE SECURITY.md; do
+          if ! grep -q "$file" README.md; then
+            echo "⚠️  Warning: $file not referenced in README.md"
+          fi
+        done
+        
+        echo "✅ README validation completed" 
