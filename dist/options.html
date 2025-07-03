@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Extension Options</title>
+  <link rel="stylesheet" href="css/popup.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 32px; background: #f9f9f9; }
+    .container { background: #fff; padding: 24px 32px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); max-width: 400px; margin: 0 auto; }
+    label { display: block; margin-top: 18px; font-weight: bold; }
+    input[type="number"], input[type="text"] { width: 100%; padding: 8px; margin-top: 6px; border-radius: 6px; border: 1px solid #ccc; }
+    button { margin-top: 24px; padding: 10px 24px; border: none; border-radius: 6px; background: #ff2222; color: #fff; font-weight: bold; cursor: pointer; }
+    .status { margin-top: 16px; color: green; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Customize Extension</h2>
+    <form id="options-form">
+      <label for="threshold">Trigger Threshold (number of scrolls/arrows):</label>
+      <input type="number" id="threshold" min="1" value="2" required />
+
+      <label for="redirect">Redirect Site URL:</label>
+      <input type="text" id="redirect" value="https://www.google.com/" required />
+
+      <label for="delay">Popup Delay (seconds):</label>
+      <select id="delay">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+      </select>
+
+      <button type="submit">Save</button>
+      <div class="status" id="status"></div>
+    </form>
+  </div>
+  <script src="js/options.js"></script>
+</body>
+</html> 
