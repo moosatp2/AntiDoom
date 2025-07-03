@@ -124,9 +124,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 git clone https://github.com/moosatp2/AntiDoom.git
 cd AntiDoom
 
-# Install dependencies (if any)
-npm install
-
 # Load in Chrome for development
 # Follow installation steps above
 ```
