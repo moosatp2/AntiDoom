@@ -14,9 +14,11 @@ We take the security of AntiDoom seriously. If you believe you have found a secu
 
 ### Reporting Process
 
-1. **Do NOT create a public GitHub issue** for the vulnerability
-2. **Email us directly** at [INSERT SECURITY EMAIL]
-3. **Include detailed information** about the vulnerability:
+1. **Create a private security issue** on GitHub:
+   - Go to [GitHub Security Issues](https://github.com/moosatp2/AntiDoom/security/advisories)
+   - Click "Report a vulnerability"
+   - Fill out the security advisory form
+2. **Include detailed information** about the vulnerability:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact
@@ -104,7 +106,7 @@ Security updates will be released as:
 
 For security-related questions or reports:
 
-- **Security Email**: [INSERT SECURITY EMAIL]
+- **GitHub Security Advisories**: [Report a vulnerability](https://github.com/moosatp2/AntiDoom/security/advisories)
 - **GitHub Issues**: For non-sensitive security discussions
 - **Discussions**: For general security questions
 

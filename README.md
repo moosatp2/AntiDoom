@@ -159,9 +159,9 @@ Have an idea? We'd love to hear it!
 
 ## 🔒 Security
 
-We take security seriously. Please report vulnerabilities privately:
+We take security seriously. Please report vulnerabilities through GitHub:
 
-- **Security Email**: [INSERT SECURITY EMAIL]
+- **Security Advisories**: [Report a vulnerability](https://github.com/moosatp2/AntiDoom/security/advisories)
 - **Security Policy**: [SECURITY.md](SECURITY.md)
 
 ## 📄 License
@@ -179,7 +179,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: [INSTALLATION.md](INSTALLATION.md), [TESTING.md](TESTING.md)
 - **Issues**: [GitHub Issues](https://github.com/moosatp2/AntiDoom/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/moosatp2/AntiDoom/discussions)
-- **Email**: [INSERT CONTACT EMAIL]
+- **Issues**: [GitHub Issues](https://github.com/moosatp2/AntiDoom/issues)
 
 ## 🌟 Star History
 
